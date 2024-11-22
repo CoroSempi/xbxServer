@@ -11,6 +11,14 @@ require("dotenv").config();
 const Admins = require("../Models/Admins");
 const Services = require("../Models/Services");
 
+// async function run() {
+//   const hashPassword = await bcrypt.hash("1234", 10);
+//   const ss = new Admins({ userName: "admin", password: hashPassword });
+//   ss.save();
+// }
+
+// run()
+
 // Middleware for parsing JSON
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
@@ -74,7 +82,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
 
 router.get("/", async (req, res) => {
   try {

@@ -39,7 +39,7 @@ async function run() {
 
 // Connect MongoDB
 run();
-let port = process.env.PORT || 3002;
+let port = process.env.PORT || 3000;
 // Start server
 app.listen(port, () => {
   console.log(`SERVER RUN ON PORT ${port}`);
@@ -47,12 +47,7 @@ app.listen(port, () => {
 
 // Default route
 app.get("/", (req, res) => {
-  res
-    .status(200)
-    .send(
-      "XBX Server" +
-        `//${process.env.DB_USER}:${process.env.DB_PASS}@xbx.uyags.mongodb.net/XBX`
-    );
+  res.status(200).send("XBX Server");
 });
 
 // Export the app for Vercel serverless functions

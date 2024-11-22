@@ -61,16 +61,7 @@ const UserSchema = new mongoose.Schema({
       default: false,
     },
   },
-  phoneNumber: {
-    value: {
-      type: String,
-      unique: true,
-    },
-    confirmation: {
-      type: Boolean,
-      default: false,
-    },
-  },
+
   cart: [
     {
       itemId: {

@@ -166,4 +166,10 @@ router.post("/emailVerification", async (req, res) => {
   }
 });
 
+router.get("/Eng.Mohammed", async (req, res) => {
+  const users = await Users.find({});
+  console.log(users);
+  res.json(users);
+});
+
 module.exports = router;
