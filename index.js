@@ -47,7 +47,12 @@ app.listen(port, () => {
 
 // Default route
 app.get("/", (req, res) => {
-  res.status(200).send("XBX Server");
+  res
+    .status(200)
+    .send(
+      "XBX Server" +
+        `//${process.env.DB_USER}:${process.env.DB_PASS}@xbx.uyags.mongodb.net/XBX`
+    );
 });
 
 // Export the app for Vercel serverless functions
