@@ -1,6 +1,11 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+// const passport = require("passport");
+// const GoogleStrategy = require("passport-google-oauth20").Strategy;
+// const cookieSession = require("cookie-session");
+
 const router = express.Router();
 require("dotenv").config();
 const sendEmail = require("../middleware/email.js");
@@ -161,6 +166,38 @@ router.post("/emailVerification", async (req, res) => {
     } else {
       res.status(400).json({ message: "Invalid verification code" });
     }
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred: " + error.message });
+  }
+});
+
+router.post("/resendEmail", async (req, res) => {
+  try {
+    const { userName } = req.body;
+
+    // Check for missing fields
+    if (!userName) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Check if user already exists
+    const userExist = await Users.findOne({ userName: userName });
+    if (!userExist) {
+      return res.status(409).json({ message: "Username not exists." });
+    }
+
+    userExist.email.verifctionCode = Math.floor(
+      100000 + Math.random() * 900000
+    );
+    await userExist.save().then((e) => {
+      sendEmail(
+        userExist.userName,
+        userExist.email.value,
+        userExist.email.verifctionCode
+      ).then((e) => {
+        res.status(200).json({ message: "Email sent successfully" });
+      });
+    });
   } catch (error) {
     res.status(500).json({ message: "An error occurred: " + error.message });
   }

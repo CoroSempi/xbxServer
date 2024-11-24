@@ -22,6 +22,8 @@ app.use("/test", Test);
 app.use("/admin", Admin);
 app.use("/user", User);
 
+
+
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -39,7 +41,7 @@ async function run() {
 
 // Connect MongoDB
 run();
-let port = process.env.PORT || 3000;
+let port = process.env.PORT || 3001;
 // Start server
 app.listen(port, () => {
   console.log(`SERVER RUN ON PORT ${port}`);
