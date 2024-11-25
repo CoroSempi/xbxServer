@@ -1,23 +1,8 @@
 const mongoose = require("mongoose");
 
-const MiniServiceSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-  },
-  overview: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-});
-
-const ServiceSchema = new mongoose.Schema({
+const ProductSchema = new mongoose.Schema({
   type: {
-    default: "Service",
+    default: "Product",
     type: String,
     required: true,
   },
@@ -41,14 +26,22 @@ const ServiceSchema = new mongoose.Schema({
     type: [String],
     required: true,
   },
-  totalPrice: {
+  price: {
     type: Number,
     required: true,
   },
-  miniServices: [MiniServiceSchema],
+  shippingCost: {
+    type: Number,
+    required: true,
+  },
   numberOfPurchases: {
     default: 0,
     type: Number,
+    required: true,
+  },
+  availability: {
+    type: Boolean,
+    default: true,
     required: true,
   },
   instructions: {
@@ -67,6 +60,6 @@ const ServiceSchema = new mongoose.Schema({
   },
 });
 
-const Services = mongoose.model("Services", ServiceSchema);
+const Products = mongoose.model("Products", ProductSchema);
 
-module.exports = Services;
+module.exports = Products;

@@ -4,9 +4,11 @@ const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-const Test = require("./Controllers/Test");
+const SuperAdmin = require("./Controllers/superAdminRoute");
 const Admin = require("./Controllers/adminRoute");
 const User = require("./Controllers/userRoute");
+const Services = require("./Controllers/Services");
+const Products = require("./Controllers/Products");
 
 // Create an Express app
 const app = express();
@@ -18,11 +20,11 @@ app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
 // Routes
-app.use("/test", Test);
+app.use("/superAdmin", SuperAdmin);
 app.use("/admin", Admin);
 app.use("/user", User);
-
-
+app.use("/services", Services);
+app.use("/products", Products);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));

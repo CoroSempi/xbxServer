@@ -9,7 +9,11 @@ require("dotenv").config();
 
 // BXB Schemas=======================================================
 const Admins = require("../Models/Admins");
+
 const Services = require("../Models/Services");
+const Products = require("../Models/Products");
+
+const { console } = require("inspector");
 
 // async function run() {
 //   const hashPassword = await bcrypt.hash("1234", 10);
@@ -65,7 +69,7 @@ function TokenMiddleware(req, res, next) {
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const folderName = req.body.title;
-    const folderPath = path.join("public", folderName);
+    const folderPath = path.join(`public/${req.body.type}`, folderName);
 
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath, { recursive: true });
@@ -97,33 +101,41 @@ router.get("/", async (req, res) => {
 router.post("/SignIn", async (req, res) => {
   try {
     const { userName, password } = req.body;
+    // Validate input
     if (!userName || !password) {
       return res.status(400).json({ message: "All fields are required." });
     }
-    const adminExist = await Admins.findOne({ userName: userName });
+    // Check if the admin exists
+    const adminExist = await Admins.findOne({ userName });
     if (!adminExist) {
       return res
         .status(401)
         .json({ message: "Username or password is incorrect." });
     }
-    const validation = await bcrypt.compare(password, adminExist.password);
-    if (!validation) {
+    // Validate password
+    const isPasswordValid = await bcrypt.compare(password, adminExist.password);
+    if (!isPasswordValid) {
       return res
         .status(401)
         .json({ message: "Username or password is incorrect." });
     }
-    // Generate token with user ID and name
+
+    // Generate token
     const token = jwt.sign(
-      { id: adminExist._id, name: userName },
+      { id: adminExist._id, name: adminExist.userName },
       process.env.TOKEN_ACCESS,
       { expiresIn: "1h" }
     );
+
+    // Respond with token and user info
     res.status(200).json({
       AccessToken: token,
       adminID: adminExist._id,
       adminName: adminExist.userName,
     });
   } catch (error) {
+    // Log the error for debugging
+    console.error("SignIn error:", error);
     res.status(500).json({ message: "An error occurred: " + error.message });
   }
 });
@@ -137,6 +149,7 @@ router.post(
     { name: "gallery", maxCount: 10 },
   ]),
   async (req, res) => {
+    console.log(req);
     try {
       const {
         title,
@@ -145,7 +158,6 @@ router.post(
         totalPrice,
         miniServices,
         instructions,
-        uploadedBy,
       } = req.body;
 
       const gallery = req.files.gallery
@@ -165,7 +177,7 @@ router.post(
         totalPrice,
         miniServices: JSON.parse(miniServices),
         instructions: JSON.parse(instructions),
-        uploadedBy,
+        uploadedBy: req.user.id,
       });
 
       await service.save();
@@ -175,52 +187,6 @@ router.post(
     }
   }
 );
-
-// getAllServices==============================================
-router.get("/Services", (req, res) => {
-  Services.find()
-    .then((services) => {
-      console.log(services);
-      return res.status(200).json(services);
-    })
-    .catch((err) => {
-      res.status(500).json({ message: "An error occurred: " + err.message });
-    });
-});
-
-// Get Service by ID endpoint========================================
-router.get("/service/:id", async (req, res) => {
-  try {
-    const serviceId = req.params.id;
-    const service = await Services.findById(serviceId);
-
-    if (!service) {
-      return res.status(404).json({ message: "Service not found." });
-    }
-
-    res.status(200).json(service);
-  } catch (error) {
-    res.status(500).json({ message: "An error occurred: " + error.message });
-  }
-});
-
-// Get Services by Category endpoint
-router.get("/services/category/:category", async (req, res) => {
-  try {
-    const category = req.params.category;
-    const services = await Services.find({ category: category });
-
-    if (services.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No services found for this category." });
-    }
-
-    res.status(200).json(services);
-  } catch (error) {
-    res.status(500).json({ message: "An error occurred: " + error.message });
-  }
-});
 
 // Delete Service and Folder endpoint
 router.delete("/deleteService/:id", TokenMiddleware, async (req, res) => {
@@ -236,7 +202,7 @@ router.delete("/deleteService/:id", TokenMiddleware, async (req, res) => {
     await Services.findByIdAndDelete(serviceId);
 
     // Delete the folder associated with the service
-    const folderPath = path.join("public", serviceToDelete.title);
+    const folderPath = path.join("public/Services", serviceToDelete.title);
     fs.rm(folderPath, { recursive: true, force: true }, (err) => {
       if (err) {
         return res
@@ -247,6 +213,79 @@ router.delete("/deleteService/:id", TokenMiddleware, async (req, res) => {
       res
         .status(200)
         .json({ message: "Service and folder deleted successfully." });
+    });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred: " + error.message });
+  }
+});
+
+// Add Product endpoint==============================================
+router.post(
+  "/addProduct",
+  TokenMiddleware,
+  upload.fields([
+    { name: "cover", maxCount: 1 },
+    { name: "gallery", maxCount: 10 },
+  ]),
+  async (req, res) => {
+    console.log(req);
+    try {
+      const { title, category, overView, price, shippingCost, instructions } =
+        req.body;
+
+      const gallery = req.files.gallery
+        ? req.files.gallery.map((file) =>
+            file.path.replace("public" + path.sep, "")
+          )
+        : [];
+
+      const product = new Products({
+        title,
+        category,
+        overView,
+        cover: req.files.cover
+          ? req.files.cover[0].path.replace("public" + path.sep, "")
+          : "",
+        gallery,
+        price,
+        shippingCost,
+        instructions: JSON.parse(instructions),
+        uploadedBy: req.user.id,
+      });
+
+      await product.save();
+      res.status(200).json({ message: "added sucessfully", product });
+    } catch (error) {
+      res.status(500).json({ message: "An error occurred: " + error.message });
+    }
+  }
+);
+
+// Delete Product and Folder endpoint
+router.delete("/deleteProduct/:id", TokenMiddleware, async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const productToDelete = await Products.findById(productId);
+
+    if (!productToDelete) {
+      return res.status(404).json({ message: "Service not found." });
+    }
+
+    // Delete the service
+    await Products.findByIdAndDelete(productId);
+
+    // Delete the folder associated with the service
+    const folderPath = path.join("public/Products", productToDelete.title);
+    fs.rm(folderPath, { recursive: true, force: true }, (err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ message: "Error deleting folder: " + err.message });
+      }
+
+      res
+        .status(200)
+        .json({ message: "Product and folder deleted successfully." });
     });
   } catch (error) {
     res.status(500).json({ message: "An error occurred: " + error.message });

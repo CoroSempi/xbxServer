@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 // Schema for Admins
-const AdminSchema = new mongoose.Schema({
+const SuperAdminSchema = new mongoose.Schema({
   userName: {
     type: String,
     unique: true,
@@ -9,13 +9,13 @@ const AdminSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: "admin",
+    default: "superAdmin",
 
     required: true,
   },
   password: { type: String, required: true },
 });
 
-const Admin = mongoose.model("Admin", AdminSchema);
+const SuperAdmin = mongoose.model("SuperAdmin", SuperAdminSchema);
 
-module.exports = Admin;
+module.exports = SuperAdmin;
