@@ -24,7 +24,7 @@ const sendNotification = async (userName, email, Message) => {
               <p>Dear ${userName},</p>
               <p>Notification from XBX!</p>
             </div>
-  <img src="path/to/your/image.png" alt="Notification Message" class="message-image">
+  <img src="https://xbx-server.vercel.app/message.png" alt="Notification Message" class="message-image">
             <h2 style="text-align: center; color: #333;">${Message}</h2>
 
             <p style="line-height: 1.6;">Thank you for choosing XBX!</p>
