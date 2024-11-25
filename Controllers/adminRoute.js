@@ -7,13 +7,14 @@ const path = require("path");
 const multer = require("multer");
 require("dotenv").config();
 
+// const sendNotification = require("../middleware/noti");
+
 // BXB Schemas=======================================================
 const Admins = require("../Models/Admins");
 
 const Services = require("../Models/Services");
 const Products = require("../Models/Products");
-
-const { console } = require("inspector");
+const sendNotification = require("../middleware/noti");
 
 // async function run() {
 //   const hashPassword = await bcrypt.hash("1234", 10);
@@ -287,6 +288,18 @@ router.delete("/deleteProduct/:id", TokenMiddleware, async (req, res) => {
         .status(200)
         .json({ message: "Product and folder deleted successfully." });
     });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred: " + error.message });
+  }
+});
+
+//send notification endpoint
+
+router.post("/prodcast/notification", TokenMiddleware, async (req, res) => {
+  try {
+    const message = req.body.message;
+    sendNotification("lordseif07", "corozanstore@gmail.com", message);
+    res.status(200).json({ message: "fre" });
   } catch (error) {
     res.status(500).json({ message: "An error occurred: " + error.message });
   }

@@ -40,5 +40,7 @@ const sendEmail = async (userName, email, verifctionCode) => {
   }
 };
 
+
+
 // Exporting the function
 module.exports = sendEmail;
