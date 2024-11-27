@@ -7,14 +7,17 @@ const path = require("path");
 const multer = require("multer");
 require("dotenv").config();
 
-// const sendNotification = require("../middleware/noti");
+const sendNotification = require("../middleware/noti");
+const TokenMiddleware = require("../middleware/TokenMiddleware.js");
 
 // BXB Schemas=======================================================
 const Admins = require("../Models/Admins");
 
 const Services = require("../Models/Services");
 const Products = require("../Models/Products");
-const sendNotification = require("../middleware/noti");
+const Users = require("../Models/Users");
+
+
 
 // async function run() {
 //   const hashPassword = await bcrypt.hash("1234", 10);
@@ -41,30 +44,6 @@ const setHeadersMiddleware = (req, res, next) => {
 };
 // Apply middleware to the whole route
 router.use(setHeadersMiddleware);
-
-// Token Middleware==================================================
-function TokenMiddleware(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader) {
-    return res
-      .status(401)
-      .json({ message: "No authorization header provided." });
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "No token provided." });
-  }
-
-  jwt.verify(token, process.env.TOKEN_ACCESS, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: "Unauthorized access." });
-    }
-    req.user = user;
-    next();
-  });
-}
 
 // Set up Multer storage configuration===============================
 const storage = multer.diskStorage({
@@ -298,8 +277,12 @@ router.delete("/deleteProduct/:id", TokenMiddleware, async (req, res) => {
 router.post("/prodcast/notification", TokenMiddleware, async (req, res) => {
   try {
     const message = req.body.message;
-    sendNotification("lordseif07", "corozanstore@gmail.com", message);
-    res.status(200).json({ message: "fre" });
+    const userss = await Users.find();
+    userss.map((e) => {
+      sendNotification(e.userName, e.email.value, message);
+    });
+
+    res.status(200).json({ message: "prodcasting Done" });
   } catch (error) {
     res.status(500).json({ message: "An error occurred: " + error.message });
   }

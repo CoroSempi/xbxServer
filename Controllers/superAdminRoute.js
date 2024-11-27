@@ -12,8 +12,11 @@ const SuperAdmin = require("../Models/SuperAdmin");
 const Admins = require("../Models/Admins");
 const Services = require("../Models/Services");
 const Products = require("../Models/Products");
+const InvestorUpgradeOrders = require("../Models/InvestorUpgradeOrders");
+const Users = require("../Models/Users");
 
-const { console } = require("inspector");
+const TokenMiddleware = require("../middleware/TokenMiddleware.js");
+const sendNotification = require("../middleware/noti");
 
 // async function run() {
 //   const hashPassword = await bcrypt.hash("1234", 10);
@@ -40,30 +43,6 @@ const setHeadersMiddleware = (req, res, next) => {
 };
 // Apply middleware to the whole route
 router.use(setHeadersMiddleware);
-
-// Token Middleware==================================================
-function TokenMiddleware(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader) {
-    return res
-      .status(401)
-      .json({ message: "No authorization header provided." });
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "No token provided." });
-  }
-
-  jwt.verify(token, process.env.TOKEN_ACCESS, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: "Unauthorized access." });
-    }
-    req.user = user;
-    next();
-  });
-}
 
 // Set up Multer storage configuration===============================
 const storage = multer.diskStorage({
@@ -202,6 +181,79 @@ router.get("/adminUploads/:id", TokenMiddleware, async (req, res) => {
       adminServices: adminServices,
       adminProducts: adminProducts,
     });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred: " + error.message });
+  }
+});
+
+// InvestorUpgradeOrders=============================================
+router.get("/InvestorUpgradeOrders", TokenMiddleware, async (req, res) => {
+  try {
+    const UpgradeOrders = await InvestorUpgradeOrders.find();
+    return res.status(200).json(UpgradeOrders);
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred: " + error.message });
+  }
+});
+
+// InvestorUpgradeOrders=============================================
+router.post("/verifyUpgradeOrders", TokenMiddleware, async (req, res) => {
+  try {
+    const { userName, verifiction } = req.body;
+    const OrderExist = await InvestorUpgradeOrders.findOne({
+      userName: userName,
+    });
+
+    const userExist = await Users.findOne({
+      userName: userName,
+    });
+
+    if (!OrderExist) {
+      return res
+        .status(401)
+        .json({ message: "user does not Exist in InvestorUpgradeOrders" });
+    }
+
+    if (verifiction === true) {
+      OrderExist.verifiction = verifiction;
+      OrderExist.verifyBy = req.user.id;
+      await OrderExist.save();
+
+      userExist.nationalId = OrderExist.nationalID;
+      userExist.nationalIdConfirmation = true;
+      userExist.role = "investor";
+      await userExist.save();
+
+      sendNotification(
+        userName,
+        userExist.email.value,
+        "<p>We are excited to inform you that your ID has been successfully verified! You are now officially our partner.</p><p>As a valued partner, you have the opportunity to invest in our projects and be part of our journey. We look forward to achieving great things together!</p>"
+      );
+      return res
+        .status(200)
+        .json({ message: "ID verfied sucessfully", userExist });
+    } else {
+      OrderExist.verifiction = verifiction;
+      OrderExist.verifyBy = req.user.id;
+      // Delete the folder associated with the service
+      const folderPath = `public/InvestorsID/${userName}`;
+      fs.rm(folderPath, { recursive: true, force: true }, (err) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "Error deleting folder: " + err.message });
+        }
+      });
+      OrderExist.nationalID = "rejected";
+      await OrderExist.save();
+      
+      sendNotification(
+        userName,
+        userExist.email.value,
+        "<p>It appears that we need you to upload your ID picture again. This step is crucial for us to verify your account and ensure your partnership with us.</p><p>Please log in to your account and submit your ID picture at your earliest convenience. If you need help, do not hesitate to contact our support team.</p>"
+      );
+      return res.status(401).json({ message: "ID verification rejected", OrderExist });
+    }
   } catch (error) {
     res.status(500).json({ message: "An error occurred: " + error.message });
   }

@@ -7,8 +7,11 @@ const bodyParser = require("body-parser");
 const SuperAdmin = require("./Controllers/superAdminRoute");
 const Admin = require("./Controllers/adminRoute");
 const User = require("./Controllers/userRoute");
-const Services = require("./Controllers/Services");
-const Products = require("./Controllers/Products");
+const Services = require("./Controllers/ServicesRoute");
+const Products = require("./Controllers/ProductsRoute");
+const Investors = require("./Controllers/investorsRoute");
+const Investments = require("./Controllers/InvestmentsRoute");
+const Payments = require("./Controllers/paymentsRoute");
 
 // Create an Express app
 const app = express();
@@ -25,6 +28,9 @@ app.use("/admin", Admin);
 app.use("/user", User);
 app.use("/services", Services);
 app.use("/products", Products);
+app.use("/investors", Investors);
+app.use("/investments", Investments);
+app.use("/payments", Payments);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));

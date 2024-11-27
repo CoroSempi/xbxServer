@@ -8,7 +8,10 @@ const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 require("dotenv").config();
+
+
 const sendEmail = require("../middleware/email.js");
+const TokenMiddleware = require("../middleware/TokenMiddleware.js");
 
 // BXB Schemas=======================================================
 const Users = require("../Models/Users");
@@ -32,29 +35,6 @@ const setHeadersMiddleware = (req, res, next) => {
 // Apply middleware to the whole route
 router.use(setHeadersMiddleware);
 
-// Token Middleware==================================================
-function TokenMiddleware(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader) {
-    return res
-      .status(401)
-      .json({ message: "No authorization header provided." });
-  }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "No token provided." });
-  }
-
-  jwt.verify(token, process.env.TOKEN_ACCESS, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: "Unauthorized access." });
-    }
-    req.user = user;
-    next();
-  });
-}
 
 // GET all messages
 router.get("/", async (req, res) => {
