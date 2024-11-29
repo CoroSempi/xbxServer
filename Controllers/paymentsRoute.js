@@ -84,7 +84,6 @@ router.get("/complete", async (req, res) => {
 
       await userExist.save();
       return res.redirect("/pp");
-      
     } else {
       return res.status(400).json({
         success: false,
