@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const SuperAdmin = require("./Controllers/superAdminRoute");
 const Admin = require("./Controllers/adminRoute");
