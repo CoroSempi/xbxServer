@@ -1,5 +1,47 @@
 const mongoose = require("mongoose");
 
+// MiniService Schema
+const MiniServiceSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+});
+
+// UserServices Schema
+const UserServicesSchema = new mongoose.Schema({
+  serviceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Service",
+    required: true,
+  },
+  serviceTitle: {
+    type: String,
+    required: true,
+  },
+  orderDate: {
+    type: Date,
+    default: Date.now,
+  },
+  miniServices: [MiniServiceSchema], // Array of mini services
+  totalPricePaid: {
+    type: Number,
+    required: true,
+  },
+  isPaid: {
+    type: Boolean,
+    default: true, // Assuming service is paid by default
+  },
+  isDelivered: {
+    type: Boolean,
+    default: false, // Assuming service is not delivered by default
+  },
+});
+
 // Schema for a single Order Item
 const OrderItemSchema = new mongoose.Schema({
   itemId: {
@@ -94,6 +136,7 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  userService: [UserServicesSchema],
   ordersHistory: [OrderSchema],
   investments: [InvestmentProjectSchema],
 

@@ -21,6 +21,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
+// Set the view engine to EJS
+app.set("view engine", "ejs");
+// Set the views directory
+app.set("views", path.join(__dirname, "Views"));
 
 // Routes
 app.use("/superAdmin", SuperAdmin);
@@ -58,6 +62,11 @@ app.listen(port, () => {
 // Default route
 app.get("/", (req, res) => {
   res.status(200).send("XBX Server");
+});
+
+app.get("/pp", (req, res) => {
+  res.render("paymentDone");
+  // res.status(200).send("XBX Server");
 });
 
 // Export the app for Vercel serverless functions
