@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 require("dotenv").config();
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 
 // BXB Schemas=======================================================
 const Users = require("../Models/Users");
@@ -28,6 +28,8 @@ router.use(setHeadersMiddleware);
 
 // PaymentServices==============================================
 router.post("/services", TokenMiddleware, async (req, res) => {
+  const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
   const selectedServices = req.body.miniServices;
   const { serviceID, serviceTitle } = req.body;
 
@@ -59,6 +61,7 @@ router.post("/services", TokenMiddleware, async (req, res) => {
 
 router.get("/complete", async (req, res) => {
   try {
+    const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
     const [session, lineItems] = await Promise.all([
       stripe.checkout.sessions.retrieve(req.query.session_id, {
         expand: ["payment_intent.payment_method"],
